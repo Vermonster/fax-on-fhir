@@ -1,0 +1,11 @@
+node_modules
+*.log*
+*.sublime-project
+*.sublime-workspace
+.idea
+*.iml
+.vscode
+*.swp
+*.swo
+tmp/*
+**/.vs
