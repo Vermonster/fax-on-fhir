@@ -3,6 +3,6 @@ touch training-data.csv
 
 for folderName in train/*/ ; do
   for file in $folderName* ; do
-    echo $folderName ',' "$(node parse.js $file)" >> training-data.csv
+    echo $folderName ',' "$(node parse.js "$file")" >> training-data.csv
   done
 done
