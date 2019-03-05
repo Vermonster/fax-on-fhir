@@ -1,0 +1,8 @@
+rm -f data/training-data.csv
+touch data/training-data.csv
+
+for folderName in data/train/*/ ; do
+  for file in $folderName* ; do
+    echo $folderName ',' "$(node parse.js "$file")" >> training-data.csv
+  done
+done
