@@ -1,0 +1,7 @@
+{
+  "name": "fax-to-fhir",
+  "version": "0.0.0",
+  "main": "index.js",
+  "author": "Vermonster, LLC",
+  "license": "MIT"
+}
