@@ -2,16 +2,15 @@ const AWS = require('aws-sdk');
 const multipart = require('parse-multipart');
 
 exports.pdfUploadHandler = async (request, context, callback) => {
+  console.log('Version 3:06')
   console.log(request.body);
-  const requestBody = await parseMultiPartFormData(request);
-  console.log(requestBody);
-  //const pdf = requestBody.media;
-  //const id = requestBody.FaxSid;
-  //await uploadToS3(pdf, id);
+  const file = await parseMultiPartFormData(request);
+  console.log(file);
+  await uploadToS3(file);
   //const text = ocrPDF(pdf);
   //await createComprehendJob(text, id);
 
-  callback({status: 200, body: 'OK'});
+  return {statusCode: 200, body: 'Repeat'}
 }
 
 exports.comprehendCompletionHandler = async (event, context, callback) => {
@@ -19,13 +18,22 @@ exports.comprehendCompletionHandler = async (event, context, callback) => {
   const pdf = await getPDF(event);
   const binaryResponse = await uploadFHIRBinary(pdf);
   await uploadFHIRDocumentReference(classification, binaryResponse);
-
-  callback();
 }
 
 const parseMultiPartFormData = (request) => {
-
   const boundary = multipart.getBoundary(request.headers['Content-Type']);
 
-  return multipart.Parse(request.body, boundary);
+  const bodyBuffer = Buffer.from(request.body, 'utf-8');
+  return multipart.Parse(bodyBuffer, boundary).find((field) => field.name === "Media");
+}
+
+const uploadToS3 = async (file) => {
+  const s3 = new AWS.S3();
+
+  console.log(file.data.toString());
+  await s3.putObject({
+    Bucket: process.env.S3_BUCKET_FOR_PDF,
+    Key: file.filename,
+    Body: file.data
+  }).promise((err, data) => console.log(err, data))
 }
