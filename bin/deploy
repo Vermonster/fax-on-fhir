@@ -1,1 +1,3 @@
-zip -r ./dist/src.zip ./src/**
+rm -f dist/src.zip
+cd src
+zip -r ../dist/src.zip .
