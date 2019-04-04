@@ -3,5 +3,8 @@
   "version": "0.0.0",
   "main": "index.js",
   "author": "Vermonster, LLC",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "parse-multipart": "^1.0.4"
+  }
 }
