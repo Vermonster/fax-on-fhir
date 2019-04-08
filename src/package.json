@@ -5,6 +5,10 @@
   "author": "Vermonster, LLC",
   "license": "MIT",
   "dependencies": {
-    "parse-multipart": "^1.0.4"
+    "aws-sdk": "^2.437.0",
+    "gm": "^1.23.1",
+    "request": "^2.88.0",
+    "tar": "^4.4.8",
+    "tesseract.js": "^1.0.14"
   }
 }
