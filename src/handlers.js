@@ -80,7 +80,9 @@ const downloadFax = async (event) => {
 
     fs.writeFileSync('/tmp/' + filename, body);
     imageMagick('/tmp/' + filename).write('/tmp/temp.jpg', (err) => {
-      if(err) { console.log(err) };
+      if(err) { "imageMagick Error:", console.log(err) };
+      console.log(require('child_process').spawnSync('ls', ['/tmp/']).output[1].toString());
+      console.log('starting OCR');
       OCR.recognize('/tmp/temp.jpg')
       .then((result) => {
         uploadToS3(result.text, bodyAttrs.FaxSid + '.txt', (err) => {
