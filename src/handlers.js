@@ -5,9 +5,9 @@ const OCR = require('tesseract.js');
 const fs = require('fs');
 const tar = require('tar');
 const imageMagick = require('gm').subClass({imageMagick: true});
+const fhirKitClient = require('fhir-kit-client');
 
 exports.pdfUploadHandler = async (event, context, callback) => {
-  console.log('Version 10:08')
   downloadFax(event);
 
   callback(null, "Success")
@@ -18,14 +18,14 @@ exports.comprehendCompletionHandler = async (event, context, callback) => {
   if (event.Records[0].s3.object.key.match('write_access_check_file.temp')) {
     return { statusCode: 200 }
   };
-  const faxId = s3Event.object.key.match(/(.+)\/.+\/output/)[1];
+  const faxId = s3Event.object.key.match(/(.+?)\/.+\/output/)[1];
   s3.getObject({
     Bucket: s3Event.bucket.name,
     Key: s3Event.object.key
   }, (err, data) => {
     fs.writeFileSync('/tmp/output.tar.gz', data.Body);
     tar.extract({ file: '/tmp/output.tar.gz', cwd: '/tmp/', sync: true });
-    const output = fs.readFileSync('/tmp/predictions.jsonl')
+    const output = JSON.parse(fs.readFileSync('/tmp/predictions.jsonl').toString());
     const docType = output.Classes.reduce((prev, curr) => {
       return (prev.Score > curr.Score) ? prev : curr
     }).Name
@@ -33,14 +33,35 @@ exports.comprehendCompletionHandler = async (event, context, callback) => {
     s3.getObject({
       Bucket: process.env.S3_BUCKET_FOR_FAX,
       Key: faxId + '.tif'
+    }, (err, data) => {
+      const Client = new fhirKitClient({
+        baseUrl: process.env.FHIR_SERVER_BASE_URL
+      });
+
+      Client.create({
+        resourceType: 'Binary',
+        body: {
+          contentType: 'image/tiff',
+          data: data.Body.toString('base64')
+        }
+      }).then((res) => {
+        const binaryUrl = res.issue[0].diagnostics.match(/"(.+)"/)[1]
+        Client.create({
+          resourceType: 'DocumentReference',
+          body: {
+            resourceType: 'DocumentReference',
+            status: 'current',
+            type: { coding: [{ code: docType, system: 'http://example.com' }] },
+            content: {
+              attachment: { url: binaryUrl }
+            }
+          }
+        }).catch((err) => console.log(err.response.data)).then((res) => { console.log(res) });
+      });
     })
 
   });
   callback(null, "Success");
-  //const classification = await getComprehendResults(event);
-  //const pdf = await getFax(event);
-  //const binaryResponse = await uploadFHIRBinary(pdf);
-  //await uploadFHIRDocumentReference(classification, binaryResponse);
 }
 
 const downloadFax = async (event) => {
@@ -65,7 +86,6 @@ const downloadFax = async (event) => {
         uploadToS3(result.text, bodyAttrs.FaxSid + '.txt', (err) => {
           if(err) { console.log(err) };
           const comprehend = new AWS.Comprehend();
-          console.log(comprehend);
           comprehend.startDocumentClassificationJob({
             DataAccessRoleArn: process.env.CLASSIFIER_ROLE_ARN,
             DocumentClassifierArn: process.env.CLASSIFIER_ARN,

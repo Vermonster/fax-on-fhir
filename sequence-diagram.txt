@@ -1,12 +1,12 @@
 @startuml
-Twilio -> "First Lambda": Forward fax as PDF
-"First Lambda" -> "S3 Input Bucket": Save PDF as filename.pdf
+Twilio -> "First Lambda": Forward fax as Tiff
+"First Lambda" -> "S3 Input Bucket": Save Tiff as filename.tif
 "First Lambda" -> "First Lambda": OCR
 "First Lambda" -> "S3 Input Bucket": Save OCRed text as filename.txt
 "First Lambda" -> "Comprehend Custom Classifier": CreateClassifierJob with filename.txt
 "Comprehend Custom Classifier" -> "S3 Output Bucket": Results
 "S3 Output Bucket" -> "Second Lambda": Fires on file create
-"Second Lambda" -> "S3 Input Bucket": GET filename.pdf
-"Second Lambda" -> "FHIR Server": PDF as FHIR Binary
+"Second Lambda" -> "S3 Input Bucket": GET filename.tif
+"Second Lambda" -> "FHIR Server": Tiff as FHIR Binary
 "Second Lambda" -> "FHIR Server": FHIR DocumentReference
 @enduml
