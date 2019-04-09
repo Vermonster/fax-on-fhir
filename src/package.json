@@ -3,5 +3,13 @@
   "version": "0.0.0",
   "main": "index.js",
   "author": "Vermonster, LLC",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.437.0",
+    "fhir-kit-client": "^1.2.2",
+    "gm": "^1.23.1",
+    "request": "^2.88.0",
+    "tar": "^4.4.8",
+    "tesseract.js": "^1.0.14"
+  }
 }
