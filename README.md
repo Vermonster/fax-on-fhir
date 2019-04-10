@@ -4,5 +4,5 @@ This repository is a proof of concept, demonstrating a serverless workflow that 
 
 **Tools used:**
 * Twilio Programmable Fax API: an API that allows us to programmatically send and receive faxes. 
-* Amazon Web Services: we use AWS Comprehend, a machine learning SaaS, to parse and categorize faxed data. AWS S3 buckets are used to store intermediary and final data. 
+* Amazon Web Services: we use AWS Comprehend, a machine learning PaaS, to parse and categorize faxed data. AWS S3 buckets are used to store intermediary and final data. 
 
