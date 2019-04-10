@@ -7,7 +7,7 @@ const tar = require('tar');
 const imageMagick = require('gm').subClass({imageMagick: true});
 const fhirKitClient = require('fhir-kit-client');
 
-exports.pdfUploadHandler = async (event, context, callback) => {
+exports.faxUploadHandler = async (event, context, callback) => {
   downloadFax(event);
 
   callback(null, "Success")
@@ -72,9 +72,9 @@ const downloadFax = async (event) => {
     bodyAttrs[attrPair[0]] = decodeURIComponent(attrPair[1])
   })
 
-  const pdfUrl = bodyAttrs.MediaUrl;
+  const faxUrl = bodyAttrs.MediaUrl;
 
-  request.get({ uri: pdfUrl, encoding: null }, async (err, resp, body) => {
+  request.get({ uri: faxUrl, encoding: null }, async (err, resp, body) => {
     const filename = bodyAttrs.FaxSid + '.tif';
     uploadToS3(body, filename);
 
