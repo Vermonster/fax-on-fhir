@@ -77,34 +77,38 @@ const downloadFax = async (event) => {
   request.get({ uri: faxUrl, encoding: null }, async (err, resp, body) => {
     const filename = bodyAttrs.FaxSid + '.tif';
     uploadToS3(body, filename);
-
-    fs.writeFileSync('/tmp/' + filename, body);
-    imageMagick('/tmp/' + filename).write('/tmp/temp.jpg', (err) => {
-      if(err) { "imageMagick Error:", console.log(err) };
-      console.log(require('child_process').spawnSync('ls', ['/tmp/']).output[1].toString());
-      console.log('starting OCR');
-      OCR.recognize('/tmp/temp.jpg')
-      .then((result) => {
-        uploadToS3(result.text, bodyAttrs.FaxSid + '.txt', (err) => {
-          if(err) { console.log(err) };
-          const comprehend = new AWS.Comprehend();
-          comprehend.startDocumentClassificationJob({
-            DataAccessRoleArn: process.env.CLASSIFIER_ROLE_ARN,
-            DocumentClassifierArn: process.env.CLASSIFIER_ARN,
-            InputDataConfig: {
-              S3Uri: `s3://${process.env.S3_BUCKET_FOR_FAX}/${bodyAttrs.FaxSid}.txt`,
-              InputFormat: 'ONE_DOC_PER_FILE'
-            },
-            OutputDataConfig: {
-              S3Uri: `s3://${process.env.S3_BUCKET_FOR_COMPREHEND_RESULTS}/${bodyAttrs.FaxSid}`
-            }
-          }, (err, data) => console.log(err, data));
-        });
-      });
-    });
-
-    return body;
+    ocrText(body, filename);
   })
+}
+
+const ocrText = (rawFile, filename) => {
+  fs.writeFileSync('/tmp/' + filename, body);
+  imageMagick('/tmp/' + filename).write('/tmp/temp.jpg', (err) => {
+    if(err) { "imageMagick Error:", console.log(err) };
+    console.log('starting OCR');
+    OCR.recognize('/tmp/temp.jpg')
+    .then((result) => {
+      startComprehendJob(result.text, bodyAttrs.FaxSid)
+    });
+  });
+}
+
+const startComprehendJob = (text, faxId) => {
+  uploadToS3(text, faxId + '.txt', (err) => {
+    if(err) { console.log(err) };
+    const comprehend = new AWS.Comprehend();
+    comprehend.startDocumentClassificationJob({
+      DataAccessRoleArn: process.env.CLASSIFIER_ROLE_ARN,
+      DocumentClassifierArn: process.env.CLASSIFIER_ARN,
+      InputDataConfig: {
+        S3Uri: `s3://${process.env.S3_BUCKET_FOR_FAX}/${faxId}.txt`,
+        InputFormat: 'ONE_DOC_PER_FILE'
+      },
+      OutputDataConfig: {
+        S3Uri: `s3://${process.env.S3_BUCKET_FOR_COMPREHEND_RESULTS}/${faxId}`
+      }
+    }, (err, data) => console.log(err, data));
+  });
 }
 
 const uploadToS3 = async (file, filename, callback = (err, data) => console.log(err, data)) => {
