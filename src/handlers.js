@@ -23,45 +23,63 @@ exports.comprehendCompletionHandler = async (event, context, callback) => {
     Bucket: s3Event.bucket.name,
     Key: s3Event.object.key
   }, (err, data) => {
-    fs.writeFileSync('/tmp/output.tar.gz', data.Body);
-    tar.extract({ file: '/tmp/output.tar.gz', cwd: '/tmp/', sync: true });
-    const output = JSON.parse(fs.readFileSync('/tmp/predictions.jsonl').toString());
-    const docType = output.Classes.reduce((prev, curr) => {
-      return (prev.Score > curr.Score) ? prev : curr
-    }).Name
+    const docType = getTypeFromTarData(data.Body);
 
-    s3.getObject({
-      Bucket: process.env.S3_BUCKET_FOR_FAX,
-      Key: faxId + '.tif'
-    }, (err, data) => {
-      const Client = new fhirKitClient({
-        baseUrl: process.env.FHIR_SERVER_BASE_URL
-      });
-
-      Client.create({
-        resourceType: 'Binary',
-        body: {
-          contentType: 'image/tiff',
-          data: data.Body.toString('base64')
-        }
-      }).then((res) => {
-        const binaryUrl = res.issue[0].diagnostics.match(/"(.+)"/)[1]
-        Client.create({
-          resourceType: 'DocumentReference',
-          body: {
-            resourceType: 'DocumentReference',
-            status: 'current',
-            type: { coding: [{ code: docType, system: 'http://example.com' }] },
-            content: {
-              attachment: { url: binaryUrl }
-            }
-          }
-        }).catch((err) => console.log(err.response.data)).then((res) => { console.log(res) });
-      });
-    })
-
+    uploadToFHIR(faxId, docType);
   });
+
   callback(null, "Success");
+}
+
+const getTypeFromTarData = (tarData) => {
+  fs.writeFileSync('/tmp/output.tar.gz', tarData);
+  tar.extract({ file: '/tmp/output.tar.gz', cwd: '/tmp/', sync: true });
+  const output = JSON.parse(fs.readFileSync('/tmp/predictions.jsonl').toString());
+  const docType = output.Classes.reduce((prev, curr) => {
+    return (prev.Score > curr.Score) ? prev : curr
+  }).Name;
+
+  return docType;
+}
+
+const uploadToFHIR = (faxId, type) => {
+  s3.getObject({
+    Bucket: process.env.S3_BUCKET_FOR_FAX,
+    Key: faxId + '.tif'
+  }, (err, data) => {
+    const client = new fhirKitClient({
+      baseUrl: process.env.FHIR_SERVER_BASE_URL
+    });
+
+    createBinary(client, data.Body.toString('base64')).then((res) => {
+      const binaryUrl = res.issue[0].diagnostics.match(/"(.+)"/)[1]
+      createDocumentReference(client, docType, binaryUrl);
+    });
+  })
+}
+
+const createBinary = (client, data) => {
+  return client.create({
+    resourceType: 'Binary',
+    body: {
+      contentType: 'image/tiff',
+      data: data
+    }
+  })
+}
+
+const createDocumentReference = (client, type, binaryUrl) => {
+  client.create({
+    resourceType: 'DocumentReference',
+    body: {
+      resourceType: 'DocumentReference',
+      status: 'current',
+      type: { coding: [{ code: type, system: 'http://example.com' }] },
+      content: {
+        attachment: { url: binaryUrl }
+      }
+    }
+  }).catch((err) => console.log(err.response.data)).then((res) => { console.log(res) });
 }
 
 const downloadFax = async (event) => {
