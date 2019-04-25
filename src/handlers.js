@@ -53,7 +53,7 @@ const uploadToFHIR = (faxId, type) => {
 
     createBinary(client, data.Body.toString('base64')).then((res) => {
       const binaryUrl = res.issue[0].diagnostics.match(/"(.+)"/)[1]
-      createDocumentReference(client, docType, binaryUrl);
+      createDocumentReference(client, type, binaryUrl);
     });
   })
 }
@@ -95,18 +95,18 @@ const downloadFax = async (event) => {
   request.get({ uri: faxUrl, encoding: null }, async (err, resp, body) => {
     const filename = bodyAttrs.FaxSid + '.tif';
     uploadToS3(body, filename);
-    ocrText(body, filename);
+    ocrText(body, filename, bodyAttrs.FaxSid);
   })
 }
 
-const ocrText = (rawFile, filename) => {
-  fs.writeFileSync('/tmp/' + filename, body);
+const ocrText = (rawFile, filename, faxId) => {
+  fs.writeFileSync('/tmp/' + filename, rawFile);
   imageMagick('/tmp/' + filename).write('/tmp/temp.jpg', (err) => {
     if(err) { "imageMagick Error:", console.log(err) };
     console.log('starting OCR');
     OCR.recognize('/tmp/temp.jpg')
     .then((result) => {
-      startComprehendJob(result.text, bodyAttrs.FaxSid)
+      startComprehendJob(result.text, faxId)
     });
   });
 }
