@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "generate": "node index.js"
+  },
+  "dependencies": {
+    "handlebars": "^4.1.2",
+    "markdown-it": "^8.4.2",
+    "puppeteer": "^1.16.0"
+  }
+}
