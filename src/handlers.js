@@ -106,12 +106,13 @@ const ocrText = (rawFile, filename, faxId) => {
     console.log('starting OCR');
     OCR.recognize('/tmp/temp.jpg')
     .then((result) => {
-      startComprehendJob(result.text, faxId)
+      startClassifierJob(result.text, faxId);
+      startMedicalComprehendJob(result.text, faxId);
     });
-  });
+  })
 }
 
-const startComprehendJob = (text, faxId) => {
+const startClassifierJob = (text, faxId) => {
   uploadToS3(text, faxId + '.txt', (err) => {
     if(err) { console.log(err) };
     const comprehend = new AWS.Comprehend();
@@ -126,6 +127,17 @@ const startComprehendJob = (text, faxId) => {
         S3Uri: `s3://${process.env.S3_BUCKET_FOR_COMPREHEND_RESULTS}/${faxId}`
       }
     }, (err, data) => console.log(err, data));
+  });
+}
+
+const startMedicalComprehendJob = (text, faxId) => {
+  const comprehendMedical = new AWS.ComprehendMedical();
+  comprehendMedical.detectEntities({ Text: text }, (err, data) => {
+    if(err) { console.log(err) };
+    console.log(data);
+    uploadToS3(data, faxId + '-medical-entities.txt', (err) => {
+      if(err) { console.log(err) };
+    });
   });
 }
 
