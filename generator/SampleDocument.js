@@ -14,6 +14,7 @@ class SampleDocument {
   constructor(data = {}, kind = 'labs') {
     this.data = data;
     this.kind = kind;
+    this.id = Math.random().toString(36).substring(2, 15);
   }
 
   async markdown() {
