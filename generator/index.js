@@ -1,5 +1,8 @@
 const fs = require('fs');
 const rimraf = require('rimraf');
+const stringify = require('csv-stringify');
+const Entities = require('html-entities').AllHtmlEntities;
+const entities = new Entities();
 const Client = require('fhir-kit-client');
 const { SampleDocument } = require('./SampleDocument');
 const pMap = require('p-map');
@@ -31,10 +34,8 @@ function buildNameString(fhirNameElement) {
 
 // Make a text representation of the report
 function createTxt(report) {
-  const output = report.markdown();
-  const wstream = fs.createWriteStream(`generated/txt/${report.kind}-${report.id}.txt`);
-  wstream.write(output);
-  wstream.end();
+  const output = entities.decode(report.markdown());
+  csvAccumulator.push([report.kind, output]);
 }
 
 // Make a PDF representation of the report
@@ -104,6 +105,7 @@ const documentJob = async (entry) => {
 //
 const client = new Client({ baseUrl: 'https://syntheticmass.mitre.org/fhir/' });
 let bundle;
+let csvAccumulator = [];
 
 async function main() {
   // clean and ensure directories exist
@@ -125,6 +127,10 @@ async function main() {
   const concurrency = 10;
   console.log(`starting job...`);
   const result = await pMap(entries, documentJob, { concurrency });
+  stringify(csvAccumulator, (err, output) => {
+    fs.writeFileSync('./generated/training-data.csv', output);
+  });
+
   console.log(`...done`);
 };
 
