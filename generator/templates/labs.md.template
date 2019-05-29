@@ -1,4 +1,4 @@
-ACME Hospital
+Fake LabCorp Facility
 
 1235 West Main St
 
@@ -6,16 +6,21 @@ Lawerance, MA 01840
 
 ---
 ## LABORATORY REPORT
-### Test Ordered: {{reportName}}
+### Test Ordered: {{report.name}}
+### Physician: {{report.physicianName}}
+### Physician NPI: {{report.physicianNpi}}
+### Specimen Date: {{report.specimenDate}}
 ---
 
 #### NAME: {{patient.name}}
 #### DOB: {{patient.birthDate}}
+#### SSN: {{patient.ssn}}
 #### SEX: {{patient.gender}}
 
-| TEST        | RESULT       | UNITS        |
-| ----------- | ------------ | -------------|
+| TESTS       | RESULT       | FLAG | UNITS        | REFERENCE INTERVAL | LAB |
+| ----------- | ------------ | ---- | ------------ | ------------------ | --- |
 {{#labs}}
-| {{labName}} | {{labValue}} | {{labUnit }} |
+| {{labName}} | {{labValue}} |      | {{labUnit }} |                    | 01  |
 {{/labs}}
 
+This document contains private and conﬁdential health information protected by state and federal law. If you have received this document in error, please call 8005551234.

@@ -22,7 +22,6 @@ table {
 }
 tr td {
   font-family: monospace;
-  border-bottom: 1px dotted #ddd;
 }`;
 
 class SampleDocument {

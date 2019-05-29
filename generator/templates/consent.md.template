@@ -1,6 +1,8 @@
 # PATIENT INFORMATION AND MEDICAL RELEASE FORM
+### Authorization For Release Of Protected Or Privileged Health Information
 
 ---
+## Patient Information
 
 |                    |                       |       |                        |
 | -------------------|-----------------------|-------|------------------------|
@@ -11,6 +13,9 @@
 | *EMAIL*            | {{patient.email}}     |       |                        |
 
 By providing your email address you acknowledge and accept the risks outlines in the Guide for E-mail with Patients.
+
+## Permission to Share
+I give my permission to share my protected health information
 
 |                |                |
 |----------------|----------------|
