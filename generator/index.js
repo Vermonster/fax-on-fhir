@@ -50,17 +50,18 @@ function createPdf(report) {
 }
 
 // Create the pair of TXT and PDF of a lab report
-async function createLabReport(patient, doctorName, reportName, labs) {
-  const labReport = new SampleDocument({patient, doctorName, reportName, labs}, 'labs');
+async function createLabReport(patient, report, labs) {
+  const labReport = new SampleDocument({patient, report, labs}, 'labs');
+  console.log(`creating Lab Report ${labReport.id}`);
   createTxt(labReport);
-  await createPdf(labReport);
+  //await createPdf(labReport);
 }
 
 // Create the pair of TXT and PDF of a consent release form
 async function createConsent(patient) {
   const consent = new SampleDocument({patient}, 'consent');
   createTxt(consent);
-  await createPdf(consent);
+  //await createPdf(consent);
 }
 
 // Map job for pMap to run concurrently
@@ -88,12 +89,25 @@ const documentJob = async (entry) => {
     const patient = await client.resolve({ reference: resource.subject.reference, context: bundle});
 
     if (patient && labs.length) {
+      const dateOptions = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+
       const reportPatient = {
         name: buildNameString(patient.name),
         gender: patient.gender,
-        birthDate: patient.birthDate
+        birthDate: (new Date(patient.birthDate)).toLocaleString('en-us', dateOptions)
       };
-      await createLabReport(reportPatient, "Dr. House", resource.code.coding[0].display, labs);
+      const report = {
+        name: resource.code.coding[0].display,
+        physicianName: "Dr. Jean Valjean",
+        physicianNpi: "24601",
+        specimenDate: (new Date(resource.effectiveDateTime)).toLocaleString('en-us', dateOptions)
+      };
+
+      await createLabReport(reportPatient, report,  labs);
       await createConsent(reportPatient);
     }
   }
@@ -123,7 +137,20 @@ async function main() {
     }
   });
 
-  const { entry: entries } = bundle;
+  let { entry: entries } = bundle;
+  let currentPage = bundle;
+  let pageNumber = 1
+
+  while(currentPage && pageNumber <= 10) {
+    console.log('looking at next page: ', pageNumber);
+    currentPage = await client.nextPage({ bundle: currentPage })
+    entries = entries.concat(currentPage.entry);
+    console.log(entries.length);
+    pageNumber++;
+  };
+
+  bundle.entry = entries;
+
   const concurrency = 10;
   console.log(`starting job...`);
   const result = await pMap(entries, documentJob, { concurrency });
