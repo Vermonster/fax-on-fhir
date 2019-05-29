@@ -1,19 +1,24 @@
-# ACME Hospital
+ACME Hospital
+
 1235 West Main St
 
 Lawerance, MA 01840
 
 ---
 ## LABORATORY REPORT
+### Test Ordered: {{reportName}}
 ---
 
-NAME: ${patientName}
+#### NAME: {{patient.name}}
+#### DOB: {{patient.birthDate}}
+#### SEX: {{patient.gender}}
 
-DATE: ${lab_date}
+---
 
-DOCTOR: ${doctorName}
+| TEST        | RESULT       | UNITS        |
+| ----------- | ------------ | -------------|
+{{#labs}}
+| {{labName}} | {{labValue}} | {{labUnit }} |
+{{/labs}}
 
 
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |

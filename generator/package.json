@@ -6,6 +6,7 @@
     "fhir-kit-client": "^1.2.4",
     "handlebars": "^4.1.2",
     "markdown-it": "^8.4.2",
+    "mustache": "^3.0.1",
     "p-map": "^2.1.0",
     "puppeteer": "^1.16.0",
     "rimraf": "^2.6.3"

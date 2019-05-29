@@ -50,8 +50,8 @@ function createPdf(report) {
 }
 
 // Create the pair of TXT and PDF of a lab report
-async function createLabReport(patientName, doctorName, labs) {
-  const labReport = new SampleDocument({patientName, doctorName, labs}, 'labs');
+async function createLabReport(patient, doctorName, reportName, labs) {
+  const labReport = new SampleDocument({patient, doctorName, reportName, labs}, 'labs');
   createTxt(labReport);
   await createPdf(labReport);
 }
@@ -59,15 +59,48 @@ async function createLabReport(patientName, doctorName, labs) {
 // Map job for pMap to run concurrently
 const documentJob = async (entry) => {
   const { resource } = entry;
-  console.log(`Building resource ${resource.id}`);
-  const patientName = buildNameString(resource.name);
-  await createLabReport(patientName);
+
+  let labs = [];
+
+  if (resource.resourceType === 'DiagnosticReport') {
+    const { result: observationRefs } = resource;
+
+    for await (let observationRef of observationRefs) {
+      const observation = await client.resolve({ reference: observationRef.reference, context: bundle });
+      if (observation && observation.valueQuantity) {
+        const { valueQuantity } = observation;
+
+        labs.push({
+          labName: observation.code.coding[0].display,
+          labValue: valueQuantity.value,
+          labUnit: valueQuantity.unit
+        });
+      }
+    };
+
+    const patient = await client.resolve({ reference: resource.subject.reference, context: bundle});
+
+    if (patient && labs.length) {
+      const reportPatient = {
+        name: buildNameString(patient.name),
+        gender: patient.gender,
+        birthDate: patient.birthDate
+      };
+      await createLabReport(reportPatient, "Dr. House", resource.code.coding[0].display, labs);
+    }
+  }
 };
 
 
 //
 // Main function...
 //
+
+
+const client = new Client({ baseUrl: 'https://syntheticmass.mitre.org/fhir/' });
+
+let bundle;
+
 async function main() {
   // clean and ensure directories exist
   rimraf.sync('./generated');
@@ -75,15 +108,20 @@ async function main() {
   fs.mkdirSync('./generated/pdf', { recursive: true });
   fs.mkdirSync('./generated/txt', { recursive: true });
 
-  // query FHIR server
+  // Query FHIR server
   const client = new Client({ baseUrl: 'https://syntheticmass.mitre.org/fhir/' });
-  const response = await client.search({ resourceType: 'Patient' });
-  const { entry: entries } = response;
+  bundle = await client.search({
+    resourceType: 'DiagnosticReport',
+    searchParams: {
+      _include:  [ 'DiagnosticReport:patient' ]
+    }
+  });
+
+  const { entry: entries } = bundle;
 
   const number = entries.length;
   const concurrency = 10;
 
-  // Generate 10 reports at a time...
   console.log(`generating ${number} reports with concurrency ${concurrency}`);
   const result = await pMap(entries, documentJob, { concurrency });
 
