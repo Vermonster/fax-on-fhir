@@ -13,12 +13,9 @@ Lawerance, MA 01840
 #### DOB: {{patient.birthDate}}
 #### SEX: {{patient.gender}}
 
----
-
 | TEST        | RESULT       | UNITS        |
 | ----------- | ------------ | -------------|
 {{#labs}}
 | {{labName}} | {{labValue}} | {{labUnit }} |
 {{/labs}}
-
 

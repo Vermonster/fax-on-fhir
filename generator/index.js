@@ -31,18 +31,17 @@ function buildNameString(fhirNameElement) {
 
 // Make a text representation of the report
 function createTxt(report) {
-  report.markdown().then((output) => {
-    const wstream = fs.createWriteStream(`generated/txt/${report.id}.txt`);
-    wstream.write(output);
-    wstream.end();
-  });
+  const output = report.markdown();
+  const wstream = fs.createWriteStream(`generated/txt/${report.kind}-${report.id}.txt`);
+  wstream.write(output);
+  wstream.end();
 }
 
 // Make a PDF representation of the report
 function createPdf(report) {
   return report.pdf().then((output) => {
     const { pdf, browser } = output;
-    const wstream = fs.createWriteStream(`generated/pdf/${report.id}.pdf`);
+    const wstream = fs.createWriteStream(`generated/pdf/${report.kind}-${report.id}.pdf`);
     wstream.write(pdf);
     wstream.end();
     browser.close();
@@ -54,6 +53,13 @@ async function createLabReport(patient, doctorName, reportName, labs) {
   const labReport = new SampleDocument({patient, doctorName, reportName, labs}, 'labs');
   createTxt(labReport);
   await createPdf(labReport);
+}
+
+// Create the pair of TXT and PDF of a consent release form
+async function createConsent(patient) {
+  const consent = new SampleDocument({patient}, 'consent');
+  createTxt(consent);
+  await createPdf(consent);
 }
 
 // Map job for pMap to run concurrently
@@ -87,6 +93,7 @@ const documentJob = async (entry) => {
         birthDate: patient.birthDate
       };
       await createLabReport(reportPatient, "Dr. House", resource.code.coding[0].display, labs);
+      await createConsent(reportPatient);
     }
   }
 };
@@ -95,10 +102,7 @@ const documentJob = async (entry) => {
 //
 // Main function...
 //
-
-
 const client = new Client({ baseUrl: 'https://syntheticmass.mitre.org/fhir/' });
-
 let bundle;
 
 async function main() {
@@ -118,14 +122,10 @@ async function main() {
   });
 
   const { entry: entries } = bundle;
-
-  const number = entries.length;
   const concurrency = 10;
-
-  console.log(`generating ${number} reports with concurrency ${concurrency}`);
+  console.log(`starting job...`);
   const result = await pMap(entries, documentJob, { concurrency });
-
-  console.log(`done`);
+  console.log(`...done`);
 };
 
 main();

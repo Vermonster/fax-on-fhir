@@ -1,0 +1,41 @@
+# PATIENT INFORMATION AND MEDICAL RELEASE FORM
+
+---
+
+|                    |                       |       |                        |
+| -------------------|-----------------------|-------|------------------------|
+| *PATIENT NAME*     | {{patient.name }}     | *DOB* | {{patient.birthDate }} |
+| *STREET ADDRESS*   | {{patient.address}}   | *SSN* | {{patient.ssn}}        |
+| *CITY, STATE, ZIP* | {{patient.citystate}} | *SEX* | {{patient.gender}}     |
+| *PHONE*            | {{patient.phobne}}    |       |                        |
+| *EMAIL*            | {{patient.email}}     |       |                        |
+
+By providing your email address you acknowledge and accept the risks outlines in the Guide for E-mail with Patients.
+
+|                |                |
+|----------------|----------------|
+| *RELEASE FROM* | *RELEASE TO*   |
+| ACME Health    | Draco Wellness |
+
+
+---
+
+I Understand and Agree to these Conditions for Authorization:
+
+Voluntary. Disclosure of this information is voluntary and I can refuse to sign
+this authorization. I need not sign this form in order to ensure treatment.
+Revocation. I have the right to revoke this authorization at any time and must
+do so in writing. The revocation will not apply to information that has already
+been released in response to this authorization and will not apply to my
+insurance company when the law provides my insurer with the right to contest a
+claim under my policy.  Request for Review. I may inspect or request a copy of
+the information to be used or disclosed, as provided in 45 C.F.R. 164.524.
+Potential for Redisclosure. Information disclosed in response to this
+authorization may be disclosed by the recipient and may not be protected by
+federal or state law.  Expiration. This Authorization will remain in effect for
+six (6) months unless otherwise specified
+
+
+Signed: _______________________________________________________
+
+Date:   _______________________________________________________

@@ -10,6 +10,21 @@ const MarkdownIt = require('markdown-it');
 
 const { execSync } = require('child_process');
 
+const styles = `
+html {
+  font-family: sans-serif;
+  margin: .5in;
+}
+
+table {
+  width: 100%;
+  border: 1px solid #ddd;
+}
+tr td {
+  font-family: monospace;
+  border-bottom: 1px dotted #ddd;
+}`;
+
 class SampleDocument {
   constructor(data = {}, kind = 'labs') {
     this.data = data;
@@ -17,7 +32,7 @@ class SampleDocument {
     this.id = Math.random().toString(36).substring(2, 15);
   }
 
-  async markdown() {
+  markdown() {
     const templatePath = Path.resolve('templates', `${this.kind}.md.template`);
     const template = Fs.readFileSync(templatePath, 'utf8');
     return Mustache.render(template, this.data);
@@ -26,7 +41,7 @@ class SampleDocument {
   async html() {
     const content = await this.markdown();
     const md = new MarkdownIt();
-    return '<html><style>table { width: 100%; }</style>' + md.render(content) + '</html>';
+    return `<html><style>${styles}</style><body>${md.render(content)}</body></html>`;
   }
 
   async pdf() {
