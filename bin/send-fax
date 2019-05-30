@@ -1,0 +1,6 @@
+curl -X POST https://fax.twilio.com/v1/Faxes \
+--data-urlencode "From=+16178523083" \
+--data-urlencode "To=+16177649199" \
+--data-urlencode "MediaUrl=https://url.to.pdf/you/want/to/send" \
+-u YOUR-TWILIO-API-KEY
+
