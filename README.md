@@ -47,3 +47,15 @@ Required Permissions: CloudWatch Logs, S3
 Runtime: NodeJS 8.10
 Handler: handlers.comprehendCompletionHandler
 Environment Variables: S3\_BUCKET\_FOR\_FAX, FHIR\_SERVER\_BASE\_URL
+
+# Testing
+
+In order to manually trigger the full workflow follow the following steps:
+
+- Make sure the PDF you want to send is publicly available from a http URL. (e.g. a public S3 bucket).
+- Edit the `bin/send-fax` script to add your Twilio API key and the url for the PDF you want to send.
+- You can then see the progress of the application.
+  - The two Lambdas log out various information to AWS Cloudwatch.
+  - You can see the `.tif` received from Twilio and the OCRed text in the first bucket, named after the ID assigned to the fax by Twilio.
+  - You can see the final classification in the second bucket under the same ID.
+
