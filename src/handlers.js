@@ -124,6 +124,7 @@ const startClassifierJob = (text, faxId) => {
         S3Uri: `s3://${process.env.S3_BUCKET_FOR_FAX}/${faxId}.txt`,
         InputFormat: 'ONE_DOC_PER_FILE'
       },
+      JobName: `Fax On Fhir Classifier for Fax ${faxId}`,
       OutputDataConfig: {
         S3Uri: `s3://${process.env.S3_BUCKET_FOR_COMPREHEND_RESULTS}/${faxId}`
       }
@@ -136,7 +137,7 @@ const startMedicalComprehendJob = (text, faxId) => {
   comprehendMedical.detectEntities({ Text: text }, (err, data) => {
     if(err) { console.log(err) };
     console.log(data);
-    uploadToS3(data, faxId + '-medical-entities.txt', (err) => {
+    uploadToS3(JSON.stringify(data), faxId + '-medical-entities.json', (err) => {
       if(err) { console.log(err) };
     });
   });
