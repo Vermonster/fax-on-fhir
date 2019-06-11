@@ -52,7 +52,8 @@ const uploadToFHIR = (faxId, type) => {
     });
 
     createBinary(client, data.Body.toString('base64')).then((res) => {
-      const binaryUrl = res.issue[0].diagnostics.match(/"(.+)"/)[1]
+      console.log(res);
+      const binaryUrl = `${process.env.FHIR_SERVER_BASE_URL}Binary/${res.id}`;
       createDocumentReference(client, type, binaryUrl);
     });
   })
