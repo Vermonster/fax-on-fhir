@@ -5,7 +5,7 @@
   "author": "Vermonster, LLC",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.437.0",
+    "aws-sdk": "^2.814.0",
     "fhir-kit-client": "^1.2.2",
     "gm": "^1.23.1",
     "request": "^2.88.0",
